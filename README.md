@@ -2,9 +2,9 @@
 
 [中文说明](README-zh.md)
 
-Learn any field with a local AI tutor that teaches one chunk at a time, checks mastery, and keeps a record of what actually worked.
+Learn any field with a local AI tutor that teaches in small chunks, tests mastery, and can resume from disk even after the chat is gone.
 
-2 Sigma Learning is a Claude Code skill for people who want a real course instead of a one-off answer. Start it with `/2-sigma-learning`, and it runs a file-backed learning loop in the current folder: plan the course, teach in chunks, test retrieval, record evidence, and adapt the next class.
+2 Sigma Learning is a Claude Code skill for people who want a real course instead of a one-off answer. Start it only with `/2-sigma-learning`, and it runs a file-backed learning loop in the current folder: plan the course, teach one chunk, test retrieval, record evidence, and adapt the next class.
 
 ## Why this exists
 
@@ -36,11 +36,13 @@ It can:
 
 - start a new course from an empty folder
 - continue a course from `proposal.md` and existing class files
+- recover teaching state by reading the files on disk, not by trusting chat memory
 - teach one chunk at a time instead of dumping a full lesson
 - ask 1–2 checkpoint questions after each chunk
 - use warm-up review based on weak carryover concepts
 - gate progression at roughly 80% to 90% mastery
-- switch explanation routes when you are stuck
+- switch to a different explanation route when you are stuck
+- create remediation classes such as `Class 02b - <topic> (remediation).md`
 - write learning records back to local files
 - generate `summary.md` when the course is done
 
@@ -68,7 +70,7 @@ When starting a new course, it asks only for the information needed to draft a u
 
 Then it drafts `proposal.md`, shows it to you, and iterates until the class sequence makes sense.
 
-During teaching, it does not keep talking forever. It teaches one chunk, asks 1–2 checkpoint questions, evaluates your answer, and decides whether to continue, review, or switch explanation routes.
+During teaching, it does not keep talking forever. It teaches one chunk, asks 1–2 checkpoint questions, evaluates your answer, and decides whether to continue, review, ask a harder question, or switch explanation routes.
 
 ## What it writes
 
@@ -78,40 +80,65 @@ A course lives in local files. The default shape is:
 proposal.md
 Class 01 - <topic>.md
 Class 02 - <topic>.md
+Class 02b - <topic> (remediation).md
 ...
 summary.md
 ```
 
-`proposal.md` holds the course plan, class sequence, progress, and weak concepts that should return in future warm-up review.
+`proposal.md` is the course-level index. It holds the learning goal, knowledge map, class sequence, progress, weak concepts carryover, and update log.
 
-Each class file holds the class goal, warm-up review, textbook chunks, checkpoint questions, exercises, the class rubric, and a `## Learning Record` section.
+Each class file is the class-level evidence file. It holds the lesson content and the record needed for a future session to continue teaching without guessing.
 
-At the end of a class, the skill writes back:
+Class files use fixed English structural headings, even when the teaching content is in another language. This keeps the files easy to read and easy for the skill to parse across sessions. Important sections include:
 
-- what was covered
-- the checkpoint questions
-- your answers
-- the feedback given
-- mastery estimates
-- remaining gaps
-- explanations or analogies that helped
-- what should happen next
+- `## At a Glance`
+- `## Key Takeaways`
+- `## Textbook`
+- `## Misconceptions / Weak Concepts`
+- `## Learning Record`
+- `## Mastery & Gaps`
+- `## Hooks for Next Class`
 
-When the course is complete, it generates `summary.md` with mastered concepts, residual weak points, and recommended next directions.
+At the end of a class, the skill runs a four-step close:
+
+1. write or update the class file with real evidence from the session
+2. update `proposal.md` with progress and weak carryover concepts
+3. scaffold the next class or a remediation class
+4. ask whether to continue now or stop here
+
+The skill must not fabricate textbook content, worked examples, user answers, or learning records. If the next class is not ready yet, it creates a skeleton instead of inventing a lesson.
 
 ## Why local files matter
 
 A tutoring loop needs memory. A normal chat window loses too much context when the session ends.
 
-A local agent can keep track of:
+Version 2 of this skill is built around one constraint: a fresh session with no chat memory should be able to resume teaching by reading only the files on disk.
+
+That means the files must preserve:
 
 - what you already understand
 - which misconceptions keep recurring
-- which explanations failed
+- which explanation route failed
 - which explanation finally worked
 - which weak concepts should return in the next warm-up
+- what the next class should open with
 
 That is the difference between generic AI help and a course that adapts to you over time.
+
+## How it adapts when you are stuck
+
+The skill does not just repeat the same explanation with different wording.
+
+When a core concept falls below 60% mastery, it must switch to a different explanation route:
+
+1. abstract or formal definition
+2. concrete example
+3. analogy
+4. counterexample or contrast
+5. visual or structural explanation
+6. prerequisite drop-down
+
+It also records which route worked, so the next session can reuse useful framings and avoid failed ones.
 
 ## Use it for
 
@@ -122,6 +149,7 @@ This skill is a good fit when you want to:
 - study from your own textbooks, papers, or docs
 - keep a persistent learning record across sessions
 - force yourself into retrieval practice instead of passive reading
+- repair weak concepts before moving on
 
 ## Limits
 

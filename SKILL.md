@@ -1,6 +1,6 @@
 ---
 name: 2-sigma-learning
-description: Runs a persistent one-on-one tutoring course in the current folder using mastery learning. Use when the user wants to study or learn a topic over multiple sessions, build or continue a course plan (proposal.md + class markdown files), generate textbook-style lessons, resume a previous lesson, or be quizzed with adaptive feedback.
+description: Runs a persistent one-on-one tutoring course in the current folder using mastery learning. Start it only with `/2-sigma-learning`.
 tools: Read, Write, Edit, Glob, AskUserQuestion
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: 2-sigma-learning
-description: Runs a persistent one-on-one tutoring course in the current folder using mastery learning. Trigger when the user wants to learn a field, build or continue a course plan (proposal.md + class markdown files), generate textbook-style lessons, or be quizzed.
+description: Runs a persistent one-on-one tutoring course in the current folder using mastery learning. Use when the user wants to study or learn a topic over multiple sessions, build or continue a course plan (proposal.md + class markdown files), generate textbook-style lessons, resume a previous lesson, or be quizzed with adaptive feedback.
 tools: Read, Write, Edit, Glob, AskUserQuestion
 ---
 
@@ -56,7 +56,7 @@ Two kinds of files, two different jobs. Do not mix them.
 5. **Evaluate** each answer against the rubric (§7) and give a brief verdict plus a mastery estimate.
 6. **Adapt** based on the answer: proceed / re-explain with a different route / drop to prerequisite / offer harder question.
 7. **Record** Q&A into an in-session transcript as you go, so the end-of-class write-up is evidence, not reconstruction.
-8. **End-of-class**: run the 4-step close in §10.
+8. **End-of-class**: run the 4-step close in §11. If the user pauses mid-class, use §10 instead.
 
 ## 4. Start-of-session routing
 
@@ -98,7 +98,7 @@ Required fields:
 
 Use `AskUserQuestion` only for finite-option fields (depth, cadence, language). Gather the rest in normal chat.
 
-After drafting `proposal.md`, show it to the user, iterate on the knowledge map and class sequence, and only then create class files — unless the user explicitly says "start now."
+After drafting `proposal.md`, show it to the user, iterate on the knowledge map and class sequence, and only then create class files — unless the user explicitly says "start now." Do not write course files while the user is still exploring options or only asking for a learning plan.
 
 ## 7. Mastery rubric (quantitative anchors)
 
@@ -123,7 +123,7 @@ Use these anchors when estimating mastery. Do not inflate.
 proposal.md
 Class 01 - <topic>.md
 Class 02 - <topic>.md
-Class 02b - <topic> (remediation).md   # optional, see §10 Step 3
+Class 02b - <topic> (remediation).md   # optional, see §11 Step 3
 ...
 summary.md        # generated at course completion
 ```
@@ -146,12 +146,16 @@ Use zero-padded class numbers so file ordering matches class ordering. Remediati
 - Keep checkpoint questions retrieval-oriented (apply, explain, compare), not recall-only, once past the first chunk.
 - **Using `AskUserQuestion`.** Use it whenever the decision is finite and benefits from explicit structure: finite-option branching (continue / review / harder; language; depth), yes/no confirmations (skip warm-up? accept this mastery estimate? create a remediation class?), and class-end navigation (continue now / stop here). Open-ended teaching questions (checkpoint questions, "explain in your own words") stay in normal chat.
 
-## 10. End-of-class: mandatory 4-step close
+## 10. Interrupted class handling
+
+If the user stops mid-class, runs out of time, or asks to pause, do a lightweight close instead of forcing the full 4-step close. Update the current class file with the Learning Record so far, current Mastery & Gaps, and Hooks for Next Class. Update `proposal.md` only if progress or weak concepts changed. Do not scaffold the next class unless the user explicitly asks.
+
+## 11. End-of-class: mandatory 4-step close
 
 Before ending any class, you MUST perform these four steps in order. `proposal.md` updates alone are not sufficient — class-level evidence lives in the class file.
 
 **Step 1 — Write or update `Class NN - <topic>.md`.**
-If the file does not exist, create it first. Fill every section defined in §11, with emphasis on: `At a Glance`, `Learning Record` (verbatim Q&A evidence), `Mastery & Gaps`, `Misconceptions / Weak Concepts`, and `Hooks for Next Class`. If an analogy or framing visibly helped, also edit the corresponding `Textbook` chunk so the saved version reflects what actually worked.
+If the file does not exist, create it first. Fill every section defined in §12, with emphasis on: `At a Glance`, `Learning Record` (verbatim Q&A evidence), `Mastery & Gaps`, `Misconceptions / Weak Concepts`, and `Hooks for Next Class`. If an analogy or framing visibly helped, also edit the corresponding `Textbook` chunk so the saved version reflects what actually worked.
 
 **Step 2 — Update `proposal.md`.**
 Mark the class `Status` (complete / partial / skipped). Add any <80% concepts to `Weak Concepts Carryover` with the source class number. Update `Current Progress`. Append one dated line to `Update Log` explaining the change and the evidence behind it. Reorder upcoming classes only if the record justifies it.
@@ -172,7 +176,7 @@ In all cases, create a skeleton only. Allowed sections for a new class: `At a Gl
 
 **Step 4 — Offer the user two options**: continue now to the next (or remediation) class, or stop here and resume next session. Use `AskUserQuestion`.
 
-## 11. Class file template
+## 12. Class file template
 
 ```markdown
 # Class <NN> - <Topic>
@@ -228,7 +232,7 @@ Section headings above are fixed English anchors; the content written under them
 
 The textbook must match the user's background. For beginners: examples before abstractions. For advanced users: tighter terminology and harder questions.
 
-## 12. Learning Record format
+## 13. Learning Record format
 
 At class end, the `## Learning Record` block is evidence, not summary. Replace it with:
 
@@ -252,14 +256,14 @@ _Specific explanations, analogies, diagrams, or question framings that moved the
 
 Do not fabricate answers. If the user was vague or skipped a question, say so. The point of this section is that a future session can reconstruct the user's actual state from it.
 
-## 13. Missing-file handling
+## 14. Missing-file handling
 
 - User says "continue" but no `proposal.md` exists → tell them no course plan was found here; ask whether to start new or point to the right folder.
-- `proposal.md` exists but the next class file is missing and was not scaffolded last time → generate a scaffold first (per §10 Step 3 rules, no fabricated content) before teaching.
+- `proposal.md` exists but the next class file is missing and was not scaffolded last time → generate a scaffold first (per §11 Step 3 rules, no fabricated content) before teaching.
 - Class file exists but has no `Learning Record` or it is marked `_Not started yet._` → treat the class as unstarted (if no other content) or unfinished (if partial), and resume from its last chunk.
 - A required §5 section is missing from the latest class file → tell the user, then either reconstruct from what exists or proceed with a flagged gap; never silently invent state.
 
-## 14. Course completion
+## 15. Course completion
 
 When all classes in `Class Sequence` reach ≥80% mastery evidence, or the user declares the course done, generate `summary.md`:
 
@@ -276,7 +280,7 @@ _A small set of integrative questions spanning the course._
 
 Then offer the user: take the capstone, extend the course, or close it.
 
-## 15. Tone and style
+## 16. Tone and style
 
 - Plain language by default; match the user's actual background, not a generic beginner.
 - Separate factual claims from pedagogical recommendations.
